@@ -1,0 +1,69 @@
+#
+# shib idp gateway install playbook
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    gw_base: /data/local
+    idp_root: /data/local/idp-3.2
+    gw_root: /data/local/gateway
+    gw_src: /data/local/src/gateway
+    install_base: /data/webapps
+
+  tasks:
+
+  - name: remove from cluster
+    copy: "src=apache/host_status.txt.disable dest=/www/host_status.txt group=iam-dev mode=664"
+    when: "cluster_hosts|length>1 "
+    notify: return to cluster
+
+
+  - pause: "seconds={{ idle_wait_sec |default(1) }}"
+    when: "cluster_hosts|length>1 "
+
+  - name: copy gateway env
+    synchronize: 
+      src: "{{gw_src}}/gateway-env"
+      dest: "{{gw_src}}"
+
+  - name: copy gateway
+    synchronize: 
+      src: "{{gw_root}}"
+      dest: "{{gw_base}}"
+      rsync_opts:
+        --exclude=idp_conf.py
+
+  - name: copy props
+    copy: "src={{gw_root}}/idp_conf.py.{{cluster_type}} dest={{gw_root}}/idp_conf.py group=iam-dev mode=644"
+
+    notify:
+      - restart gateway
+
+  - name: copy apache config
+    copy: "src=/data/conf/apache.conf.d/https.gateway  dest=/data/conf/apache.conf.d  group=iam-dev mode=664"
+    notify:
+      - restart apache
+
+  - name: start gateway at boot
+    cron: name="run_gateway" special_time="reboot"  job="{{gw_root}}/uw/run_gateway.sh >/dev/null 2>&1"
+
+  # run any handlers 
+  - meta: flush_handlers
+
+  handlers:
+     - include: "ansible-tools/tasks/iam_handlers.yml"
+
+     - name: restart gateway
+       shell: "setsid /data/local/gateway/uw/run_gateway.sh>/dev/null 2>&1 1</dev/null &"
+
+     - name: return to cluster
+       copy: "src=apache/host_status.txt.enable dest=/www/host_status.txt group=iam-dev mode=664"
+       when: "cluster_hosts|length>1 "
+
+

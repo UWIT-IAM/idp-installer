@@ -1,0 +1,131 @@
+#
+# shib idp install playbook
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-3.2
+    install_base: /data/webapps
+
+  tasks:
+
+  - name: remove from cluster
+    copy: "src=apache/host_status.txt.disable dest=/www/host_status.txt group=iam-dev mode=644"
+    when: "cluster_hosts|length>1 "
+    notify: return to cluster
+
+  - pause: "seconds={{ idle_wait_sec |default(1) }}"
+    when: "cluster_hosts|length>1 "
+
+  - name: update install status
+    copy: "src=install.status dest={{idp_root}}/install.status group=iam-dev mode=644"
+
+  # - name: tomcat startup params
+  #   daemon_config: "service=tomcat key=idp.home value={{idp_root}}"
+  #   notify: restart tomcat
+
+  - name: copy idp_root (common files)
+    synchronize: 
+      src: "{{idp_root}}"
+      dest: "{{idp_base}}"
+      rsync_opts:
+        --perms
+        --exclude=relying-party.xml*
+        --exclude=idp.properties*
+        --exclude=idp-metadata.xml*
+        --exclude=logback.xml*
+        --exclude=idp.war
+        --exclude=*.swp
+        --exclude=*.dist
+        --exclude=*.prod
+        --exclude=old-*
+
+  - name: copy cluster-specific files
+    copy: "src={{idp_root}}{{item}}.{{cluster_type}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items: 
+       - /conf/relying-party.xml
+       - /conf/idp.properties
+       - /conf/logback.xml
+       - /metadata/idp-metadata.xml
+    notify: restart tomcat
+    
+  - name: copy idp.war
+    copy: "src={{idp_root}}/war/idp.war dest={{idp_root}}/war group=iam-dev mode=644"
+    register: warfile
+    
+  - name: unpack idp.war
+    shell: "rm -rf /data/webapps/idp; mkdir /data/webapps/idp; cd /data/webapps/idp; jar xf {{idp_root}}/war/idp.war" 
+    when: warfile.changed
+    notify:
+      - restart tomcat
+
+  - name: copy preauth
+    synchronize: 
+      src: "/www/idp-preauth"
+      dest: "/www"
+    
+  - name: copy idp apache config
+    copy: "src=/data/conf/apache.conf.d/{{item}} dest=/data/conf/apache.conf.d group=iam-dev mode=644"
+    with_items:
+      - http.idp
+      - https.idp
+      - https.preauth
+    notify:
+      - restart apache
+
+  - name: copy web stuff
+    copy: "src=/www/{{item.name}} dest=/data/www group=iam-dev "
+    with_items:
+      - { name: 'error503.cgi', mode: '755' }
+      - { name: 'logout.cgi', mode: '755' }
+      - { name: 'logout.html', mode: '644' }
+      - { name: 'metadata', mode: '755' }
+      - { name: 'pbclogout', mode: '755' }
+      - { name: 'refresh_uw', mode: '755' }
+      - { name: 'robots.txt', mode: '644' }
+
+  - name: setup refresh uw cron task
+    cron: name="refresh_uw" minute="*" job="{{idp_root}}/local-bin/refresh_uw.sh >> /logs/idp/refresh_uw.log 2>&1"
+
+  - name: setup refresh uw trigger
+    cron: name="refresh_uw_trigger" minute="00,15,30,45" job="/bin/echo 'cron' > /www/refresh_uw/data/refresh 2>/dev/null"
+
+  - name: setup cleanup cron task
+    cron: name="idp_cleanup" minute="01" hour="01" day="7"  job="{{idp_root}}/local-bin/cleanup_logs.sh >/dev/null 2>&1"
+
+  - name: setup monitor task
+    cron: name="idp_monitor" special_time="reboot"  job="{{idp_root}}/local-bin/idp_master.sh >/dev/null 2>&1"
+
+  # run the handlers
+  - meta: flush_handlers
+
+  # 
+  handlers:
+
+    - name: restart apache
+      command: /usr/bin/nohup /data/local/bin/ansible_command apache restart
+      ignore_errors: yes
+
+    # restart tomcat
+    - name: restart tomcat
+      command: /usr/bin/nohup /data/local/bin/ansible_command tomcat restart
+      notify:
+        - wait for tomcat
+
+    # wait for tomcat to restart
+    - name: wait for tomcat
+      shell: "c=0;while [ $c -lt 20 ]; do wget -O /dev/null -q  http://localhost/tomcatmanager/text/serverinfo;[ $? -eq 0 ] && exit 0;let c=c+1;sleep 5; done;exit 1"
+      register: wait_result
+      failed_when: "wait_result.rc != 0"
+
+    - name: return to cluster
+      copy: "src=apache/host_status.txt.enable dest=/www/host_status.txt group=iam-dev mode=644"
+      when: "cluster_hosts|length>1 "
+
+

@@ -1,0 +1,18 @@
+Ansible config to install idp-3.2 on IDP clusters
+
+Target site needs some setup before first install
+-------------------------------------------------
+
+(as root, on target)
+# ./system-setup.sh
+
+
+--------------------------------------------------
+
+To install or upgrade the idp or the gateway
+
+2) ./install.sh [ idp | gateway ]  [ idp_eval | idp_prod ]
+
+idp_eval = idpeval01
+idp_prod = idp01, idp02
+
