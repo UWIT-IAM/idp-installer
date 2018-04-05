@@ -1,0 +1,46 @@
+# IAM clusters and hosts
+
+
+
+
+# Shib IdP - Note prod are the v3 hosts
+
+[idp_prod]
+idp01.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
+idp02.s.uw.edu location=x169 pds=seneca23 gds=stilpo23
+idp03.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
+idp04.s.uw.edu location=ads  pds=seneca21 gds=stilpo21
+idp05.s.uw.edu location=ads  pds=seneca21 gds=stilpo21
+idp06.s.uw.edu location=x169 pds=seneca23 gds=stilpo23
+idp07.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
+idp08.s.uw.edu location=ads pds=seneca21 gds=stilpo21
+
+[idp_prod:vars]
+cluster_type=prod
+cluster_name=idp.u.washington.edu
+cluster_hosts=["idp01.s.uw.edu", "idp02.s.uw.edu", "idp03.s.uw.edu", "idp04.s.uw.edu", "idp05.s.uw.edu", "idp06.s.uw.edu", "idp07.s.uw.edu", idp08.s.uw.edu" ]
+
+[idp_eval]
+idpeval01.s.uw.edu
+
+[idp_eval:vars]
+cluster_type=eval
+cluster_name=idp-eval.u.washington.edu
+cluster_hosts=["idpeval01.s.uw.edu"]
+
+[idp_dev]
+idpdev01.s.uw.edu
+
+[idp_dev:vars]
+cluster_type=dev
+cluster_name=idp-dev.u.washington.edu
+cluster_hosts=["idpdev01.s.uw.edu"]
+
+[idp:children]
+idp_prod
+idp_eval
+idp_dev
+
+[idp:vars]
+idle_wait_sec=20
+

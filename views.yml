@@ -1,0 +1,30 @@
+#
+# shib upgrade views playbook
+# configured for idp-3.3
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-3.3
+
+  tasks:
+
+  - name: copy views
+    copy: "src={{idp_root}}/views/{{item}} dest={{idp_root}}/views/{{item}} group=iam-dev mode=644"
+    with_items:
+       - crnselect.vm
+       - duo.vm
+       - error.vm
+       - google-redirect.vm
+       - login.vm
+       - login-error.vm
+       - logout.vm
+       - needduo.vm
+       - noworkday.vm
+    

@@ -1,5 +1,6 @@
 #
 # shib idp install playbook
+# NOTE: configured for idp-3.3
 #
 
 - hosts: "{{ target }}"
@@ -10,8 +11,10 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.2
+    idp_root: /data/local/idp-3.3
     install_base: /data/webapps
+
+# some tasks commented out, to enable install with prior, manual disable and no re-enable.
 
   tasks:
 
@@ -26,9 +29,9 @@
   - name: update install status
     copy: "src=install.status dest={{idp_root}}/install.status group=iam-dev mode=644"
 
-  # - name: tomcat startup params
-  #   daemon_config: "service=tomcat key=idp.home value={{idp_root}}"
-  #   notify: restart tomcat
+#  - name: tomcat startup params
+#    daemon_config: "service=tomcat key=idp.home value={{idp_root}}"
+#    notify: restart tomcat
 
   - name: copy idp_root (common files)
     synchronize: 
@@ -36,20 +39,18 @@
       dest: "{{idp_base}}"
       rsync_opts:
         --perms
-        --exclude=relying-party.xml*
-        --exclude=idp.properties*
-        --exclude=idp-metadata.xml*
-        --exclude=logback.xml*
+        --exclude=idp.properties
+        --exclude=idp-metadata.xml
+        --exclude=logback.xml
         --exclude=idp.war
         --exclude=*.swp
         --exclude=*.dist
-        --exclude=*.prod
+        --exclude=*.eval
         --exclude=old-*
 
   - name: copy cluster-specific files
     copy: "src={{idp_root}}{{item}}.{{cluster_type}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
     with_items: 
-       - /conf/relying-party.xml
        - /conf/idp.properties
        - /conf/logback.xml
        - /metadata/idp-metadata.xml
@@ -65,30 +66,28 @@
     notify:
       - restart tomcat
 
-  - name: copy preauth
-    synchronize: 
-      src: "/www/idp-preauth"
-      dest: "/www"
-    
   - name: copy idp apache config
     copy: "src=/data/conf/apache.conf.d/{{item}} dest=/data/conf/apache.conf.d group=iam-dev mode=644"
     with_items:
       - http.idp
       - https.idp
-      - https.preauth
     notify:
       - restart apache
 
   - name: copy web stuff
     copy: "src=/www/{{item.name}} dest=/data/www group=iam-dev "
     with_items:
-      - { name: 'error503.cgi', mode: '755' }
+      - { name: 'error-generic.html', mode: '644' }
+      - { name: 'error-incommon.html', mode: '644' }
       - { name: 'logout.cgi', mode: '755' }
       - { name: 'logout.html', mode: '644' }
       - { name: 'metadata', mode: '755' }
       - { name: 'pbclogout', mode: '755' }
       - { name: 'refresh_uw', mode: '755' }
       - { name: 'robots.txt', mode: '644' }
+      - { name: 'css', mode: '755' }
+      - { name: 'img', mode: '755' }
+      - { name: 'js', mode: '755' }
 
   - name: setup refresh uw cron task
     cron: name="refresh_uw" minute="*" job="{{idp_root}}/local-bin/refresh_uw.sh >> /logs/idp/refresh_uw.log 2>&1"
@@ -124,8 +123,8 @@
       register: wait_result
       failed_when: "wait_result.rc != 0"
 
-    - name: return to cluster
-      copy: "src=apache/host_status.txt.enable dest=/www/host_status.txt group=iam-dev mode=644"
-      when: "cluster_hosts|length>1 "
+#    - name: return to cluster
+#      copy: "src=apache/host_status.txt.enable dest=/www/host_status.txt group=iam-dev mode=644"
+#      when: "cluster_hosts|length>1 "
 
 

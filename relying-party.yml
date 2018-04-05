@@ -1,0 +1,32 @@
+#
+# shib uprade relying-party playbook
+# configured for idp-3.3
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-3.3
+
+  tasks:
+
+  - name: copy relying-party config
+    copy: "src={{idp_root}}/conf/relying-party.xml dest={{idp_root}}/conf group=iam-dev mode=644"
+    notify: rp_reload
+    
+  - name: copy relying-party reloader
+    copy: "src={{idp_root}}/local-bin/reload_relyingparty dest={{idp_root}}/local-bin group=iam-dev mode=755"
+    
+  # 
+  handlers:
+
+  - name: rp_reload
+    command: /usr/bin/nohup /data/local/idp-3.3/local-bin/reload_relyingparty
+    # ignore_errors: yes
+
+

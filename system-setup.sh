@@ -147,11 +147,8 @@ iamdir /www/public
 iamdir /www/gc
 
 iamdir /data/local/idp-3.2
-iamdir /data/local/gateway
-iamdir /data/local/src/gateway
 
 iamdir /logs/idp
-iamdir /logs/gateway
 
 # prime the apache configs
 [[ -f /data/conf/apache.conf.d/global.0base ]] || {
@@ -166,7 +163,7 @@ iamdir /logs/gateway
 
 # setup tomcat java args
 cat > /etc/daemons/tomcat << END
--server -XX:+UseG1GC -Xss24m -Xms3g -Xmx3g -Dlog4j.configuration=file:/usr/local/tomcat/conf/log4j.properties -Didp.home=/data/local/idp-3.2 
+-server -XX:+UseParallelGC -Xss24m -Xms4g -Xmx4g -XX:MaxGCPauseMillis=400 -Dlog4j.configuration=file:/usr/local/tomcat/conf/log4j.properties -XX:+PrintGC -XX:+PrintGCDateStamps -Xloggc:/www/gc/idp.gc -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=20 -XX:GCLogFileSize=1M -Didp.home=/data/local/idp-3.3
 END
 
 # see if there is a local idp database
