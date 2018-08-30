@@ -18,16 +18,20 @@
 
   tasks:
 
-  - name: remove from cluster
-    copy: "src=apache/host_status.txt.disable dest=/www/host_status.txt group=iam-dev mode=644"
-    when: "cluster_hosts|length>1 "
-    notify: return to cluster
+  #- name: remove from cluster
+  #  copy: "src=apache/host_status.txt.disable dest=/www/host_status.txt group=iam-dev mode=644"
+  #  when: "cluster_hosts|length>1 "
+  #  notify: return to cluster
 
-  - pause: "seconds={{ idle_wait_sec |default(1) }}"
-    when: "cluster_hosts|length>1 "
+  #- pause: "seconds={{ idle_wait_sec |default(1) }}"
+  #  when: "cluster_hosts|length>1 "
 
-  - name: update install status
-    copy: "src=install.status dest={{idp_root}}/install.status group=iam-dev mode=644"
+  #- name: update install status
+  #  copy: "src=install.status dest={{idp_root}}/install.status group=iam-dev mode=644"
+
+  #- name: stop tomcat
+  #  command: /usr/bin/nohup /data/local/bin/ansible_command tomcat stop
+  #  ignore_errors: yes
 
 #  - name: tomcat startup params
 #    daemon_config: "service=tomcat key=idp.home value={{idp_root}}"

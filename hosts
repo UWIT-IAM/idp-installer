@@ -1,8 +1,5 @@
 # IAM clusters and hosts
 
-
-
-
 # Shib IdP - Note prod are the v3 hosts
 
 [idp_prod]
@@ -42,5 +39,5 @@ idp_eval
 idp_dev
 
 [idp:vars]
-idle_wait_sec=20
+idle_wait_sec=300
 
