@@ -16,22 +16,34 @@ idp08.s.uw.edu location=ads pds=seneca21 gds=stilpo21
 cluster_type=prod
 cluster_name=idp.u.washington.edu
 cluster_hosts=["idp01.s.uw.edu", "idp02.s.uw.edu", "idp03.s.uw.edu", "idp04.s.uw.edu", "idp05.s.uw.edu", "idp06.s.uw.edu", "idp07.s.uw.edu", idp08.s.uw.edu" ]
+remote_user=iamidp
+issuer_name=urn:mace:incommon:washington.edu
+oidc_issuer_name=https://idp.u.washington.edu
+aws_entity=UW
 
 [idp_eval]
-idpeval01.s.uw.edu
+idpeval01.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
 
 [idp_eval:vars]
 cluster_type=eval
 cluster_name=idp-eval.u.washington.edu
 cluster_hosts=["idpeval01.s.uw.edu"]
+remote_user=iamidp
+issuer_name=urn:mace:incommon:washington.edu:eval
+oidc_issuer_name=https://idp-eval.u.washington.edu
+aws_entity=UWeval
 
 [idp_dev]
-idpdev01.s.uw.edu
+idpdev01.s.uw.edu location=uwtc
 
 [idp_dev:vars]
 cluster_type=dev
 cluster_name=idp-dev.u.washington.edu
 cluster_hosts=["idpdev01.s.uw.edu"]
+remote_user=fox
+issuer_name=urn:mace:incommon:washington.edu:dev
+oidc_issuer_name=https://idp-dev.u.washington.edu
+aws_entity=UWdev
 
 [idp:children]
 idp_prod

@@ -1,6 +1,6 @@
 #
 # shib uprade relying-party playbook
-# configured for idp-3.3
+# configured for idp-3.4
 #
 
 - hosts: "{{ target }}"
@@ -11,7 +11,7 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.3
+    idp_root: /data/local/idp-3.4
 
   tasks:
 
@@ -26,7 +26,7 @@
   handlers:
 
   - name: rp_reload
-    command: /usr/bin/nohup /data/local/idp-3.3/local-bin/reload_relyingparty
+    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_relyingparty
     # ignore_errors: yes
 
 

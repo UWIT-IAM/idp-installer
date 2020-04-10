@@ -1,4 +1,4 @@
-Ansible config to install idp-3.2 on IDP clusters
+Ansible config to install idp-3.4 on IDP clusters
 
 Target site needs some setup before first install
 -------------------------------------------------

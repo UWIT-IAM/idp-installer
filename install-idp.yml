@@ -1,6 +1,6 @@
 #
 # shib idp install playbook
-# NOTE: configured for idp-3.3
+# NOTE: configured for idp-3.4
 #
 
 - hosts: "{{ target }}"
@@ -11,7 +11,7 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.3
+    idp_root: /data/local/idp-3.4
     install_base: /data/webapps
 
 # some tasks commented out, to enable install with prior, manual disable and no re-enable.
@@ -29,13 +29,13 @@
   #- name: update install status
   #  copy: "src=install.status dest={{idp_root}}/install.status group=iam-dev mode=644"
 
-  #- name: stop tomcat
-  #  command: /usr/bin/nohup /data/local/bin/ansible_command tomcat stop
-  #  ignore_errors: yes
+  - name: stop tomcat
+    command: /usr/bin/nohup /data/local/bin/ansible_command tomcat stop
+    ignore_errors: yes
 
-#  - name: tomcat startup params
-#    daemon_config: "service=tomcat key=idp.home value={{idp_root}}"
-#    notify: restart tomcat
+  #- name: tomcat startup params
+  #  daemon_config: "service=tomcat key=idp.home value={{idp_root}}"
+  #  notify: restart tomcat
 
   - name: copy idp_root (common files)
     synchronize: 
@@ -43,21 +43,34 @@
       dest: "{{idp_base}}"
       rsync_opts:
         --perms
-        --exclude=idp.properties
-        --exclude=idp-metadata.xml
-        --exclude=logback.xml
+        --exclude=idp.properties*
+        --exclude=idp-oidc.properties*
+        --exclude=attribute-resolver.xml*
+        --exclude=idp-metadata.xml*
+        --exclude=logback.xml*
         --exclude=idp.war
         --exclude=*.swp
         --exclude=*.dist
         --exclude=*.eval
+        --exclude=*.new
+        --exclude=*.sav
+        --exclude=*.log
         --exclude=old-*
 
-  - name: copy cluster-specific files
+  - name: direct copy cluster-specific files
     copy: "src={{idp_root}}{{item}}.{{cluster_type}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
     with_items: 
-       - /conf/idp.properties
        - /conf/logback.xml
        - /metadata/idp-metadata.xml
+    notify: restart tomcat
+    
+  - name: jinja2 copy cluster-specific files
+    template: "src={{idp_root}}{{item}}.tmpl dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items: 
+       - /conf/idp.properties
+       - /conf/idp-oidc.properties
+       - /conf/attribute-resolver.xml
+       - /static/.well-known/openid-configuration
     notify: restart tomcat
     
   - name: copy idp.war
@@ -87,11 +100,17 @@
       - { name: 'logout.html', mode: '644' }
       - { name: 'metadata', mode: '755' }
       - { name: 'pbclogout', mode: '755' }
-      - { name: 'refresh_uw', mode: '755' }
       - { name: 'robots.txt', mode: '644' }
       - { name: 'css', mode: '755' }
       - { name: 'img', mode: '755' }
       - { name: 'js', mode: '755' }
+      - { name: 'status', mode: '755' }
+      - { name: 'forgetme', mode: '755'}
+
+  - name: copy web stuff 2
+    copy: "src=/www/refresh_uw/{{item.name}} dest=/data/www/refresh_uw group=iam-dev "
+    with_items:
+      - { name: 'index.cgi'}
 
   - name: setup refresh uw cron task
     cron: name="refresh_uw" minute="*" job="{{idp_root}}/local-bin/refresh_uw.sh >> /logs/idp/refresh_uw.log 2>&1"
@@ -117,15 +136,19 @@
 
     # restart tomcat
     - name: restart tomcat
-      command: /usr/bin/nohup /data/local/bin/ansible_command tomcat restart
-      notify:
-        - wait for tomcat
+      debug:
+        msg: "not restartign tomcat"
+      #command: /usr/bin/nohup /data/local/bin/ansible_command tomcat restart
+      #notify:
+      #  - wait for tomcat
 
     # wait for tomcat to restart
     - name: wait for tomcat
-      shell: "c=0;while [ $c -lt 20 ]; do wget -O /dev/null -q  http://localhost/tomcatmanager/text/serverinfo;[ $? -eq 0 ] && exit 0;let c=c+1;sleep 5; done;exit 1"
-      register: wait_result
-      failed_when: "wait_result.rc != 0"
+      debug:
+        msg: "not restartign tomcat"
+      #shell: "c=0;while [ $c -lt 20 ]; do wget -O /dev/null -q  http://localhost/tomcatmanager/text/serverinfo;[ $? -eq 0 ] && exit 0;let c=c+1;sleep 5; done;exit 1"
+      #register: wait_result
+      #failed_when: "wait_result.rc != 0"
 
 #    - name: return to cluster
 #      copy: "src=apache/host_status.txt.enable dest=/www/host_status.txt group=iam-dev mode=644"

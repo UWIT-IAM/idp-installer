@@ -1,6 +1,6 @@
 #
 # shib upgrade attribute-resolver playbook
-# configured for idp-3.3
+# configured for idp-3.4
 #
 
 - hosts: "{{ target }}"
@@ -11,22 +11,24 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.3
+    idp_root: /data/local/idp-3.4
 
   tasks:
 
-  - name: copy attribute-resolver config
-    copy: "src={{idp_root}}/conf/attribute-resolver.xml dest={{idp_root}}/conf group=iam-dev mode=644"
+  - name: jinja2 copy cluster-specific files
+    template: "src={{idp_root}}{{item}}.tmpl dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items:
+       - /conf/attribute-resolver.xml
     notify: ar_reload
     
   - name: copy attribute-resolver reloader
-    copy: "src={{idp_root}}/local-bin/reload_attributeresolver dest={{idp_root}}/local-bin group=iam-dev mode=755"
+    copy: "src={{idp_root}}/local-bin/reload_resolver dest={{idp_root}}/local-bin group=iam-dev mode=755"
     
   # 
   handlers:
 
   - name: ar_reload
-    command: /usr/bin/nohup /data/local/idp-3.3/local-bin/reload_attributeresolver
+    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_resolver
     ignore_errors: no
 
 
