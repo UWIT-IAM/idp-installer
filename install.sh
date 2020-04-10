@@ -3,12 +3,37 @@
 # shib idp ansible installation script
 
 function usage {
-  echo "usage: $0 [options] product target "
-  echo "       [-v]           ( verbose )"
-  echo "       [-d]           ( very verbose )"
-  echo "       [-l hostname]  ( limit install to 'hostname' )"
-  echo "       [-H]           ( list hosts in the cluster )"
-  echo "       target: idp_eval | idp_prod"
+  echo "
+usage:	$0 [options] product target
+options:	[-v]		( verbose )
+		[-d]		( very verbose )
+		[-l hostname]	( limit install to 'hostname' )
+		[-H]		( list hosts in the cluster )
+ 
+product help:	$0 products
+
+target help:	$0 targets
+  "
+  exit 1
+}
+
+function products {
+  echo "
+     idp			Installs the entire IdP product
+     attribute-resolver		Installs new attribute-resolver.xml and related tools
+     relying-party		Installs new relying-party.xml and related tools
+     views			Installs new views/*vm
+     oidc			Installs new oidc?? (tbd)
+     cluster			Installs new cluster host list ( e.g. idp01-idp08 )
+  "
+  exit 1
+}
+
+function targets {
+  echo "
+     eval			Installs to evaluation hosts (idpeval01)
+     prod			Installs to eval hosts (idp01-idp08)
+  "
   exit 1
 }
 
@@ -26,7 +51,6 @@ list_hosts=0
 gettools=1
 
 # limited args to playbook
-OPTIND=1
 while getopts 'h?l:Hvdp:' opt; do
   case "$opt" in
     h) usage
@@ -46,11 +70,17 @@ while getopts 'h?l:Hvdp:' opt; do
   esac
 done
 
-product=idp
-eval target="\${$OPTIND}"
-[[ -z $target ]] && usage
+shift $((OPTIND-1))
+product="$1"
+[[ "$product" == "products" ]] && products
+target="$2"
+[[ "$target" == "eval" || "$target" == "prod" ]] || usage
 [[ -z $playbook ]] && playbook="install-${product}.yml"
 echo "Installing $playbook to $target"
+[[ -r $playbook ]] || {
+  echo "Playbook $playbook not found!"
+  exit 1
+}
 
 . installer-env/bin/activate
 
@@ -59,11 +89,12 @@ echo "Installing $playbook to $target"
    exit 0
 }
 
-vars="target=${target} "
-
 vars=
 (( verb>0 )) && vars="$vars -v "
 (( debug>0 )) && vars="$vars -vvvv "
-[[ -n $limit ]] && vars="$vars -l $limit "
+[[ -n $limit ]] && {
+   [[ $limit == *"."* ]] || limit=${limit}.s.uw.edu
+   vars="$vars -l $limit "
+}
 ansible-playbook ${playbook} $vars -i hosts  --extra-vars "target=${target}"
 

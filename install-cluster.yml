@@ -1,0 +1,24 @@
+#
+# shib idp install playbook
+# NOTE: configured for idp-3.4
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-3.4
+    install_base: /data/webapps
+
+# some tasks commented out, to enable install with prior, manual disable and no re-enable.
+
+  tasks:
+
+  - name: jinja2 copy cluster-specific files
+    template: "src={{idp_root}}{{item}}.tmpl dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items: 
+       - /static/cluster-hosts

@@ -57,6 +57,17 @@
         --exclude=*.log
         --exclude=old-*
 
+  - name: copy prod templates and etc for eval
+    copy: "src={{idp_root}}{{item}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items: 
+       - /conf/idp.properties.tmpl
+       - /conf/idp-oidc.properties.tmpl
+       - /conf/attribute-resolver.xml.tmpl
+       - /static/.well-known/openid-configuration.tmpl
+       - /conf/logback.xml.prod
+       - /metadata/idp-metadata.xml.prod
+    when: cluster_type == "eval"
+    
   - name: direct copy cluster-specific files
     copy: "src={{idp_root}}{{item}}.{{cluster_type}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
     with_items: 
