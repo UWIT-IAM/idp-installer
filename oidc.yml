@@ -1,0 +1,61 @@
+#
+# shib upgrade for OIDC playbook
+# configured for idp-3.4
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-3.4
+
+  tasks:
+
+  - name: copy incommon creds
+    copy: "src={{idp_root}}/credentials/{{item}} dest={{idp_root}}/credentials/{{item}} group=iam-dev mode=644"
+    with_items:
+       - idp-encryption-rsa.jwk
+       - idp-signing-es.jwk
+       - idp-signing-rs.jwk
+    notify: oidc_reload
+
+  - name: copy metadata data (until is auto)
+    copy: "src={{idp_root}}/metadata/oidc-client.json dest={{idp_root}}/metadata group=iam-dev mode=644"
+    notify: metadata_reload
+    
+  - name: copy filters
+    copy: "src={{idp_root}}/conf/{{item}} dest={{idp_root}}/conf/{{item}} group=iam-dev mode=644"
+    with_items:
+       - core-filter.xml
+       - oidc-filter.xml
+    notify: filter_reload
+
+  - name: jinja2 copy cluster-specific files
+    template: "src={{idp_root}}{{item}}.tmpl dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items:
+       - /static/.well-known/openid-configuration
+
+  - name: assure .well-known
+    copy: "src=/www/.well-known/.htaccess dest=/www/.well-known/ group=iam-dev mode=755"
+
+  - name: metatata link
+    file: 
+      src: /data/local/idp-3.4/static/.well-known/openid-configuration
+      dest: /www/.well-known/openid-configuration
+      state: link
+
+    
+  handlers:
+
+  - name: filter_reload
+    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_filter
+    ignore_errors: no
+
+  - name: metadata_reload
+    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_metadata
+    ignore_errors: no
+

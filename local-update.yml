@@ -1,0 +1,20 @@
+#
+# jinja2 update local conf files (match action of regular installer
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  vars:
+    app_name: idp
+    idp_root: /data/local/idp-3.4
+
+  tasks:
+
+  - name: jinja2 copy cluster-specific files
+    template: "src={{idp_root}}{{item}}.tmpl dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items:
+       - /conf/idp.properties
+       - /conf/attribute-resolver.xml
+
