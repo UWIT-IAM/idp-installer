@@ -24,6 +24,7 @@ function products {
      relying-party		Installs new relying-party.xml and related tools
      views			Installs new views/*vm
      oidc			Installs new oidc?? (tbd)
+     oidc-metadata		Installs new oidc metadata
      cluster			Installs new cluster host list ( e.g. idp01-idp08 )
   "
   exit 1
@@ -31,8 +32,8 @@ function products {
 
 function targets {
   echo "
-     eval			Installs to evaluation hosts (idpeval01)
-     prod			Installs to eval hosts (idp01-idp08)
+     eval			Installs to eval host
+     prod			Installs to prod hosts 
   "
   exit 1
 }

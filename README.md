@@ -1,4 +1,4 @@
-Ansible config to install idp-3.4 on IDP cluster
+Ansible config to install idp-4.1 on IDP cluster
 (from dev or eval)
 
 Local host needs ansible
@@ -19,12 +19,12 @@ Target site needs some setup before first install
 
 --------------------------------------------------
 
-To install or upgrade the idp 
+To install or upgrade the idp -- use this to see options
 
-2) ./install.sh idp eval|prod
+2) ./install.sh 
 
 idp_eval = idpeval01
-idp_prod = idp01, idp02, ...
+idp_prod = idp11, idp12, ...
 
 
 Note.  Sometimes the install.yml has commented out disable/enable tasks.  
@@ -32,6 +32,6 @@ Note.  Sometimes the install.yml has commented out disable/enable tasks.
 
 ---------------------------------------------------
 
-See "./install.shy products" to see less intrusive, on-the-fly partial updates
+See "./install.sh products" to see less intrusive, on-the-fly partial updates
 
 ----------------------------------------------------

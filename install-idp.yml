@@ -1,6 +1,6 @@
 #
 # shib idp install playbook
-# NOTE: configured for idp-3.4
+# NOTE: configured for /data/local/idp
 #
 
 - hosts: "{{ target }}"
@@ -11,8 +11,9 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.4
+    idp_root: /data/local/idp-4.1
     install_base: /data/webapps
+    dev_name: idp-dev.u.washington.edu
 
 # some tasks commented out, to enable install with prior, manual disable and no re-enable.
 
@@ -29,9 +30,9 @@
   #- name: update install status
   #  copy: "src=install.status dest={{idp_root}}/install.status group=iam-dev mode=644"
 
-  - name: stop tomcat
-    command: /usr/bin/nohup /data/local/bin/ansible_command tomcat stop
-    ignore_errors: yes
+  # - name: stop tomcat
+  #   command: /usr/bin/nohup /data/local/bin/ansible_command tomcat stop
+  #   ignore_errors: yes
 
   #- name: tomcat startup params
   #  daemon_config: "service=tomcat key=idp.home value={{idp_root}}"
@@ -42,26 +43,27 @@
       src: "{{idp_root}}"
       dest: "{{idp_base}}"
       rsync_opts:
-        --perms
-        --exclude=idp.properties*
-        --exclude=idp-oidc.properties*
-        --exclude=attribute-resolver.xml*
-        --exclude=idp-metadata.xml*
-        --exclude=logback.xml*
-        --exclude=idp.war
-        --exclude=*.swp
-        --exclude=*.dist
-        --exclude=*.eval
-        --exclude=*.new
-        --exclude=*.sav
-        --exclude=*.log
-        --exclude=old-*
+        - '--perms'
+        - '--exclude=idp.properties*'
+        - '--exclude=oidc.properties*'
+        - '--exclude=attribute-resolver.xml*'
+        - '--exclude=idp-metadata.xml*'
+        - '--exclude=logback.xml*'
+        - '--exclude=idp.war'
+        - '--exclude=*.swp'
+        - '--exclude=*.dist'
+        - '--exclude=*.eval'
+        - '--exclude=*.new'
+        - '--exclude=*.sav'
+        - '--exclude=*.log'
+        - '--exclude=old-*'
+    when: cluster_type=="spud"
 
   - name: copy prod templates and etc for eval
     copy: "src={{idp_root}}{{item}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
     with_items: 
        - /conf/idp.properties.tmpl
-       - /conf/idp-oidc.properties.tmpl
+       - /conf/oidc.properties.tmpl
        - /conf/attribute-resolver.xml.tmpl
        - /static/.well-known/openid-configuration.tmpl
        - /conf/logback.xml.prod
@@ -79,7 +81,7 @@
     template: "src={{idp_root}}{{item}}.tmpl dest={{idp_root}}{{item}} group=iam-dev mode=644"
     with_items: 
        - /conf/idp.properties
-       - /conf/idp-oidc.properties
+       - /conf/oidc.properties
        - /conf/attribute-resolver.xml
        - /static/.well-known/openid-configuration
     notify: restart tomcat
@@ -89,7 +91,7 @@
     register: warfile
     
   - name: unpack idp.war
-    shell: "rm -rf /data/webapps/idp; mkdir /data/webapps/idp; cd /data/webapps/idp; jar xf {{idp_root}}/war/idp.war" 
+    shell: "rm -rf /data/webapps/idp/*; cd /data/webapps/idp; jar xf {{idp_root}}/war/idp.war" 
     when: warfile.changed
     notify:
       - restart tomcat
@@ -103,7 +105,7 @@
       - restart apache
 
   - name: copy web stuff
-    copy: "src=/www/{{item.name}} dest=/data/www group=iam-dev "
+    copy: "src=/www/{{dev_name}}/{{item.name}} dest=/data/www/{{cluster_name}} group=iam-dev "
     with_items:
       - { name: 'error-generic.html', mode: '644' }
       - { name: 'error-incommon.html', mode: '644' }
@@ -118,10 +120,10 @@
       - { name: 'status', mode: '755' }
       - { name: 'forgetme', mode: '755'}
 
-  - name: copy web stuff 2
-    copy: "src=/www/refresh_uw/{{item.name}} dest=/data/www/refresh_uw group=iam-dev "
-    with_items:
-      - { name: 'index.cgi'}
+  #- name: copy web stuff 2
+  #  copy: "src=/www/{{dev_name}}/refresh_uw/{{item.name}} dest=/www/{{cluster_name}}/refresh_uw group=iam-dev "
+  #  with_items:
+  #    - { name: 'index.cgi'}
 
   - name: setup refresh uw cron task
     cron: name="refresh_uw" minute="*" job="{{idp_root}}/local-bin/refresh_uw.sh >> /logs/idp/refresh_uw.log 2>&1"
