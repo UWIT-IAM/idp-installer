@@ -39,7 +39,7 @@ function targets {
 }
 
 # assure correct user
-[[ `id -nu` == 'iamidp' ]] | {
+[[ `id -nu` == 'iamidp' ]] || {
   echo "Run this as user = 'iamidp'"
   exit 1
 }
