@@ -38,6 +38,13 @@ function targets {
   exit 1
 }
 
+# assure correct user
+[[ `id -nu` == 'iamidp' ]] | {
+  echo "Run this as user = 'iamidp'"
+  exit 1
+}
+
+
 # get the base path
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 base=${dir%/ansible}
