@@ -21,6 +21,7 @@ function products {
   echo "
      idp			Installs the entire IdP product
      attribute-resolver		Installs new attribute-resolver.xml and related tools
+     logging                    Installs new aidit.xml and logback.xml
      relying-party		Installs new relying-party.xml and related tools
      views			Installs new views/*vm
      oidc			Installs new oidc?? (tbd)

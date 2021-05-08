@@ -57,7 +57,7 @@
         - '--exclude=*.sav'
         - '--exclude=*.log'
         - '--exclude=old-*'
-    when: cluster_type=="spud"
+        - '--exclude=py-env'
 
   - name: copy prod templates and etc for eval
     copy: "src={{idp_root}}{{item}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
@@ -104,6 +104,15 @@
     notify:
       - restart apache
 
+  - name: copy idp tomcat config
+    copy: "src=/data/tomcatsettings/{{item}} dest=/data/tomcatsettings group=iam-dev mode=644"
+    with_items:
+      - catalina.properties
+      - server.xml
+      - startup
+    notify:
+      - restart tomcat
+
   - name: copy web stuff
     copy: "src=/www/{{dev_name}}/{{item.name}} dest=/data/www/{{cluster_name}} group=iam-dev "
     with_items:
@@ -119,11 +128,12 @@
       - { name: 'js', mode: '755' }
       - { name: 'status', mode: '755' }
       - { name: 'forgetme', mode: '755'}
+      - { name: 'refresh_uw', mode: '755'}
 
-  #- name: copy web stuff 2
-  #  copy: "src=/www/{{dev_name}}/refresh_uw/{{item.name}} dest=/www/{{cluster_name}}/refresh_uw group=iam-dev "
-  #  with_items:
-  #    - { name: 'index.cgi'}
+  - name: copy web stuff 2
+    copy: "src=/www/{{dev_name}}/refresh_uw/{{item.name}} dest=/www/{{cluster_name}}/refresh_uw group=iam-dev "
+    with_items:
+      - { name: 'index.cgi'}
 
   - name: setup refresh uw cron task
     cron: name="refresh_uw" minute="*" job="{{idp_root}}/local-bin/refresh_uw.sh >> /logs/idp/refresh_uw.log 2>&1"
@@ -144,8 +154,10 @@
   handlers:
 
     - name: restart apache
-      command: /usr/bin/nohup /data/local/bin/ansible_command apache restart
-      ignore_errors: yes
+      debug:
+        msg: "not restartign apache"
+      #command: /usr/bin/nohup /data/local/bin/ansible_command apache restart
+      #ignore_errors: yes
 
     # restart tomcat
     - name: restart tomcat
