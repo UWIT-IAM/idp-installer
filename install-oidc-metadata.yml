@@ -1,0 +1,28 @@
+#
+# shib uprade oidc metadataplaybook
+# configured for idp-3.4
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-3.4
+
+  tasks:
+
+  - name: copy metadata data (until is auto)
+    copy: "src={{idp_root}}/metadata/oidc-client.json dest={{idp_root}}/metadata group=iam-dev mode=644"
+    notify: metadata_reload
+
+  handlers:
+
+  - name: metadata_reload
+    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_clientinfo
+    # ignore_errors: yes
+
+

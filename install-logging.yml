@@ -1,0 +1,51 @@
+#
+# shib upgrade logging playbook
+# configured for idp
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp
+
+  tasks:
+  - name: direct copy audit.xml
+    copy: "src={{idp_root}}{{item}} dest={{idp_root}}{{item}} group=iam-dev mode=644"
+    with_items: 
+       - /conf/audit.xml
+       - /conf/authn/mfa-authn-config.xml
+    # need to restart tomcat, as 'reload_logging' won't pick up changes to it
+    # we'd like to be able to run this on a live cluster without risking a rolling outage
+    # notify: restart tomcat
+    register: restart_needed
+
+  - name: warn restart tomcat
+    debug: 
+      msg: The audit.xml file has changed. The change will not take effect until tomcat is restarted.
+    when: restart_needed
+     
+  - name: copy logback
+    copy: "src={{idp_root}}/conf/logback.xml.{{cluster_type}}  dest={{idp_root}}/conf/logback.xml group=iam-dev mode=644"
+    
+  - name: copy logback reloader
+    copy: "src={{idp_root}}/local-bin/reload_logging dest={{idp_root}}/local-bin group=iam-dev mode=755"
+    
+  handlers:
+
+   # restart tomcat
+   - name: restart tomcat
+     command: /usr/bin/nohup /data/local/bin/ansible_command tomcat restart
+     notify: wait for tomcat
+
+   # wait for tomcat to restart
+   - name: wait for tomcat
+     shell: "c=0;while [ $c -lt 20 ]; do wget -O /dev/null -q  http://localhost/tomcatmanager/text/serverinfo;[ $? -eq 0 ] && exit 0;let c=c+1;sleep 5; done;exit 1"
+     register: wait_result
+     failed_when: "wait_result.rc != 0"
+
+
