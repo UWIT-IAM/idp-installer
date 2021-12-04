@@ -3,21 +3,16 @@
 # Shib IdP - Note prod are the v3 hosts
 
 [prod]
-# idp01.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
-# idp02.s.uw.edu location=x169 pds=seneca23 gds=stilpo23
-# idp03.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
-# idp04.s.uw.edu location=ads  pds=seneca21 gds=stilpo21
-# idp05.s.uw.edu location=ads  pds=seneca21 gds=stilpo21
-# idp06.s.uw.edu location=x169 pds=seneca23 gds=stilpo23
-# idp07.s.uw.edu location=uwtc pds=seneca22 gds=stilpo22
-# idp08.s.uw.edu location=ads pds=seneca21 gds=stilpo21
 idp11.s.uw.edu location=uwtc pds=seneca31 gds=stilpo31
 idp12.s.uw.edu location=uwtc pds=seneca31 gds=stilpo31
+idp13.s.uw.edu location=uwtc pds=seneca31 gds=stilpo31
+idp14.s.uw.edu location=uwtc pds=seneca31 gds=stilpo31
+idp15.s.uw.edu location=uwtc pds=seneca31 gds=stilpo31
+idp16.s.uw.edu location=uwtc pds=seneca31 gds=stilpo31
 
 [prod:vars]
 cluster_type=prod
 cluster_name=idp.u.washington.edu
-# cluster_hosts=["idp01.s.uw.edu", "idp02.s.uw.edu", "idp03.s.uw.edu", "idp04.s.uw.edu", "idp05.s.uw.edu", "idp06.s.uw.edu", "idp07.s.uw.edu", idp08.s.uw.edu" ]
 cluster_hosts=["idp11.s.uw.edu", "idp12.s.uw.edu", "idp13.s.uw.edu", "idp14.s.uw.edu", "idp15.s.uw.edu", "idp16.s.uw.edu"]
 remote_user=iamidp
 issuer_name=urn:mace:incommon:washington.edu

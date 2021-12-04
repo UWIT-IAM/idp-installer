@@ -162,7 +162,7 @@
     # restart tomcat
     - name: restart tomcat
       debug:
-        msg: "not restartign tomcat"
+        msg: "not restarting tomcat"
       #command: /usr/bin/nohup /data/local/bin/ansible_command tomcat restart
       #notify:
       #  - wait for tomcat
