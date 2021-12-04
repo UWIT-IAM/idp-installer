@@ -1,6 +1,6 @@
 #
 # shib upgrade logging playbook
-# configured for idp
+# configured for idp 4.1
 #
 
 - hosts: "{{ target }}"
