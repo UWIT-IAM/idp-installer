@@ -1,0 +1,23 @@
+#
+# shib uprade relying-party playbook
+# configured for idp-4.1
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-4.1
+
+  tasks:
+
+  - shell: /usr/bin/uptime
+    when: cluster_type == "prod"
+    register: result
+
+
+
