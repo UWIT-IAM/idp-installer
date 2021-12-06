@@ -21,7 +21,7 @@ function products {
   echo "
      idp			Installs the entire IdP product
      attribute-resolver		Installs new attribute-resolver.xml and related tools
-     logging                    Installs new aidit.xml and logback.xml
+     logging                    Installs new audit.xml and logback.xml
      relying-party		Installs new relying-party.xml and related tools
      views			Installs new views/*vm
      oidc			Installs new oidc?? (tbd)
@@ -33,6 +33,7 @@ function products {
 
 function targets {
   echo "
+     dev                        Installs to dev host
      eval			Installs to eval host
      prod			Installs to prod hosts 
   "
@@ -83,7 +84,7 @@ shift $((OPTIND-1))
 product="$1"
 [[ "$product" == "products" ]] && products
 target="$2"
-[[ "$target" == "eval" || "$target" == "prod" ]] || usage
+[[ "$target" == "eval" || "$target" == "prod" || "$target" == "dev" ]] || usage
 [[ -z $playbook ]] && playbook="install-${product}.yml"
 echo "Installing $playbook to $target"
 [[ -r $playbook ]] || {
