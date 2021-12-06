@@ -24,6 +24,9 @@
   - name: copy attribute-resolver reloader
     copy: "src={{idp_root}}/local-bin/reload_resolver dest={{idp_root}}/local-bin group=iam-dev mode=755"
     
+  - name: copy attribute-resolver-activators jinja template
+    copy: "src={{idp_root}}/conf/attribute-resolver-activators.j2 dest={{idp_root}}/conf group=iam-dev mode=644"
+    
   # 
   handlers:
 

@@ -1,0 +1,29 @@
+#
+# shib upgrade of OIDC filter
+# configured for idp-4.1
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp-4.1
+
+  tasks:
+
+  - name: copy oidc filter
+    copy: "src={{idp_root}}/conf/{{item}} dest={{idp_root}}/conf/{{item}} group=iam-dev mode=644"
+    with_items:
+       - oidc-filter.xml
+    notify: filter_reload
+
+  handlers:
+
+  - name: filter_reload
+    command: /usr/bin/nohup /data/local/idp-4.1/local-bin/reload_filter
+    ignore_errors: no
+

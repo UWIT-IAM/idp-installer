@@ -26,6 +26,7 @@ function products {
      views			Installs new views/*vm
      oidc			Installs new oidc?? (tbd)
      oidc-metadata		Installs new oidc metadata
+     oidc-filter		Installs only new oidc-filter.xml
      cluster			Installs new cluster host list ( e.g. idp01-idp08 )
   "
   exit 1
