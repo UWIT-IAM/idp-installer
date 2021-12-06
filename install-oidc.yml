@@ -1,6 +1,6 @@
 #
 # shib upgrade for OIDC playbook
-# configured for idp-3.4
+# configured for idp-4.1
 #
 
 - hosts: "{{ target }}"
@@ -11,7 +11,7 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.4
+    idp_root: /data/local/idp-4.1
 
   tasks:
 
@@ -44,7 +44,7 @@
 
   - name: metatata link
     file: 
-      src: /data/local/idp-3.4/static/.well-known/openid-configuration
+      src: /data/local/idp-4.1/static/.well-known/openid-configuration
       dest: /www/.well-known/openid-configuration
       state: link
 
@@ -52,10 +52,10 @@
   handlers:
 
   - name: filter_reload
-    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_filter
+    command: /usr/bin/nohup /data/local/idp-4.1/local-bin/reload_filter
     ignore_errors: no
 
   - name: metadata_reload
-    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_metadata
+    command: /usr/bin/nohup /data/local/idp-4.1/local-bin/reload_metadata
     ignore_errors: no
 

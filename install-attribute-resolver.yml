@@ -1,6 +1,6 @@
 #
 # shib upgrade attribute-resolver playbook
-# configured for idp-3.4
+# configured for idp-4.1
 #
 
 - hosts: "{{ target }}"
@@ -11,7 +11,7 @@
   vars:
     app_name: idp
     idp_base: /data/local
-    idp_root: /data/local/idp-3.4
+    idp_root: /data/local/idp-4.1
 
   tasks:
 
@@ -28,7 +28,7 @@
   handlers:
 
   - name: ar_reload
-    command: /usr/bin/nohup /data/local/idp-3.4/local-bin/reload_resolver
+    command: /usr/bin/nohup /data/local/idp-4.1/local-bin/reload_resolver
     ignore_errors: no
 
 
