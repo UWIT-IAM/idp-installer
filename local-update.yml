@@ -8,7 +8,7 @@
   gather_facts: false
   vars:
     app_name: idp
-    idp_root: /data/local/idp-3.4
+    idp_root: /data/local/idp-4.1
 
   tasks:
 

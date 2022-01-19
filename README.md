@@ -23,7 +23,7 @@ To install or upgrade the idp -- use this to see options
 
 2) ./install.sh 
 
-idp_eval = idpeval01
+idp_eval = idpeval11
 idp_prod = idp11, idp12, ...
 
 
