@@ -1,0 +1,42 @@
+#
+# shib upgrade of oidc.properties and dynamic-mfa.base
+# configured to use /data/local/idp symlink
+#
+
+- hosts: "{{ target }}"
+  serial: 1
+  max_fail_percentage: 10
+  gather_facts: false
+  remote_user: iamidp
+  vars:
+    app_name: idp
+    idp_base: /data/local
+    idp_root: /data/local/idp
+
+  tasks:
+
+  - name: copy oidc.properties
+    copy: "src={{idp_root}}/conf/{{item}} dest={{idp_root}}/conf/{{item}} group=iam-dev mode=644"
+    with_items:
+       - oidc.properties
+    notify: restart tomcat
+
+  - name: copy dynamic-mfa.base
+    copy: "src={{idp_root}}/conf/authn/{{item}} dest={{idp_root}}/conf/authn/{{item}} group=iam-dev mode=644"
+    with_items:
+       - dynamic-mfa.base
+    notify: restart tomcat
+
+  handlers:
+
+   # restart tomcat
+   - name: restart tomcat
+     command: /usr/bin/nohup /data/local/bin/ansible_command tomcat restart
+     notify: wait for tomcat
+
+   # wait for tomcat to restart
+   - name: wait for tomcat
+     shell: "c=0;while [ $c -lt 20 ]; do wget -O /dev/null -q  http://localhost/tomcatmanager/text/serverinfo;[ $? -eq 0 ] && exit 0;let c=c+1;sleep 5; done;exit 1"
+     register: wait_result
+     failed_when: "wait_result.rc != 0"
+
