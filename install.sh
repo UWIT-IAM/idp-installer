@@ -27,7 +27,9 @@ function products {
      oidc			Installs new oidc?? (tbd)
      oidc-metadata		Installs new oidc metadata
      oidc-filter		Installs only new oidc-filter.xml
-     cluster			Installs new cluster host list ( e.g. idp01-idp08 )
+     RFC-0715			Installs new oidc.properties and dynamic-mfa.base
+     war			Installs just application's warfile
+     cluster			Installs new cluster host list ( e.g. idp11-idp16 )
   "
   exit 1
 }
